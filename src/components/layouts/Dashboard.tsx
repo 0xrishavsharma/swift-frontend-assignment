@@ -1,9 +1,12 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import Navbar from "../navbar/Navbar";
-import { useEffect } from "react";
+import { useAuthStore } from "@/store";
 
 const Dashboard = () => {
-  useEffect(() => {});
+  const { user } = useAuthStore();
+  if (user === null) {
+    return <Navigate to="/auth/login" replace={true} />;
+  }
   return (
     <div className="">
       <Navbar />
