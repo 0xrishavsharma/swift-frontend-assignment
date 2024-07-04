@@ -1,7 +1,9 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "../navbar/Navbar";
+import { useEffect } from "react";
 
 const Dashboard = () => {
+  useEffect(() => {});
   return (
     <div className="">
       <Navbar />

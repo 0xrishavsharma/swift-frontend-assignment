@@ -4,10 +4,10 @@ import { api } from "./client";
 
 // Fetch Comments
 export const fetchComments = async () => {
-  return api.get("/posts/1/comments");
+  return api.get("/comments");
 };
 
-// Fetch User
-export const fetchUser = async () => {
-  return api.get("/user");
+// Auth
+export const login = async () => {
+  return api.get("/users/1");
 };

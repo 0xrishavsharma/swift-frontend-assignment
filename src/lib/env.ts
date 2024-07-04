@@ -1,5 +1,5 @@
 import { cleanEnv, str } from "envalid";
 
-export const env = cleanEnv(process.env, {
-  API_URL: str(),
+export const env = cleanEnv(import.meta.env, {
+  VITE_API_URL: str(),
 });

@@ -2,6 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 import Profile from "@/pages/profile/Profile";
 import Dashboard from "@/components/layouts/Dashboard";
 import Comments from "./pages/comments/Comments";
+import Login from "./pages/login/Login";
+import NonAuthLayout from "./components/layouts/NonAuthLayout";
 
 export const router = createBrowserRouter([
   {
@@ -9,12 +11,23 @@ export const router = createBrowserRouter([
     element: <Dashboard />,
     children: [
       {
-        path: "/",
+        path: "",
         element: <Comments />,
       },
       {
-        path: "/profile",
+        path: "profile",
         element: <Profile />,
+      },
+    ],
+  },
+
+  {
+    path: "/auth/",
+    element: <NonAuthLayout />,
+    children: [
+      {
+        path: "login",
+        element: <Login />,
       },
     ],
   },
