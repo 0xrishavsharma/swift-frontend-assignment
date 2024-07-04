@@ -1,18 +1,21 @@
 import { createBrowserRouter } from "react-router-dom";
-import Profile from "./pages/profile/Profile";
-import Dashboard from "./pages/dashboard/Dashboard";
+import Profile from "@/pages/profile/Profile";
+import Dashboard from "@/components/layouts/Dashboard";
+import Comments from "./pages/comments/Comments";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element,
-  },
-  {
-    path: "/",
     element: <Dashboard />,
-  },
-  {
-    path: "/profile",
-    element: <Profile />,
+    children: [
+      {
+        path: "/",
+        element: <Comments />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+    ],
   },
 ]);
