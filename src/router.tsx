@@ -5,6 +5,10 @@ import Dashboard from "./pages/dashboard/Dashboard";
 export const router = createBrowserRouter([
   {
     path: "/",
+    element,
+  },
+  {
+    path: "/",
     element: <Dashboard />,
   },
   {
