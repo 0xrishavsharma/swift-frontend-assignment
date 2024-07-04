@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import Navbar from "../navbar/Navbar";
+import Navbar from "@/components/navbar";
 import { useAuthStore } from "@/store";
 
 const Dashboard = () => {
