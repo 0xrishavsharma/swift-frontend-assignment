@@ -4,7 +4,7 @@ import { api } from "./client";
 
 // Fetch Comments
 export const fetchComments = async () => {
-  return api.get("/comments");
+  return api.get("/posts/1/comments");
 };
 
 // Fetch User
