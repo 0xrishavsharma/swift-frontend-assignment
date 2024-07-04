@@ -1,27 +1,28 @@
 import { login } from "@/http/api";
 import { router } from "@/router";
-import { useQuery } from "react-query";
+import { useAuthStore, User } from "@/store";
+import { useMutation } from "react-query";
 
 const Login = () => {
-  const handleLogin = async () => {
-    const user = await login();
-    console.log(user);
-    if (user && user.status === 200) {
-      return user.data;
-    }
-  };
-
-  const { isLoading, isError } = useQuery({
-    queryKey: "login",
-    queryFn: handleLogin,
-    onSuccess: () => {
-      console.log("Login successful");
+  const { setUser } = useAuthStore();
+  const {
+    mutate: handleLogin,
+    isLoading,
+    isError,
+  } = useMutation(login, {
+    onSuccess: (response) => {
+      const user: User = response.data;
+      setUser(user);
+      console.log("Login successful", user);
       router.navigate("/");
+    },
+    onError: (error) => {
+      console.error("Error logging in", error);
     },
   });
   return (
     <div>
-      <button onClick={handleLogin}>
+      <button onClick={() => handleLogin()}>
         {isLoading ? "Loading..." : isError ? "Error" : "Login"}
       </button>
       {isError && (
