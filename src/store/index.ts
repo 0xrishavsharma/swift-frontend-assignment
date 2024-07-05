@@ -1,3 +1,4 @@
+import { router } from "@/router";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -7,6 +8,7 @@ export interface User {
   email: string;
   avatar: string;
   address: {
+    street: string;
     city: string;
     geo: {
       lat: string;
@@ -30,11 +32,21 @@ interface AuthState {
   setUser: (user: User) => void;
   logout: () => void;
 }
-
+const getUserFromLocalStorage = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};
 export const useAuthStore = create<AuthState>()(
   devtools((set) => ({
-    user: null,
-    setUser: (user) => set({ user }),
-    logout: () => set({ user: null }),
+    user: getUserFromLocalStorage(),
+    setUser: (user) => {
+      localStorage.setItem("user", JSON.stringify(user));
+      set({ user });
+    },
+    logout: () => {
+      localStorage.removeItem("user");
+      set({ user: null });
+      router.navigate("/auth/login");
+    },
   })),
 );
