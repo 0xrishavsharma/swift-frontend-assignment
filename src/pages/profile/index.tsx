@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 // icons
 import { BsArrowLeft } from "react-icons/bs";
-import { getUserInitials } from "@/lib/utils";
+import { cn, getUserInitials } from "@/lib/utils";
 
 const Profile = () => {
   const { user } = useAuthStore();
@@ -15,7 +15,12 @@ const Profile = () => {
         </Link>
         <span className="">Welcome, {user?.name}</span>
       </div>
-      <div className="h-full p-12 border-blue-900 rounded-lg shadow-[rgba(0,0,0,0.1)_0px_0px_5px_0px,rgba(0,0,0,0.1)_0px_0px_1px_0px]">
+      <div
+        className={cn(
+          "bg-box-shadow",
+          "h-full p-12 border-blue-900 rounded-lg",
+        )}
+      >
         <div className="text-primary flex items-center gap-4 pb-8">
           <div className="bg-muted md:w-24 md:h-24 md:text-3xl flex items-center justify-center w-12 h-12 text-lg font-medium rounded-full">
             {user && getUserInitials(user.name)}

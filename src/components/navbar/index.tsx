@@ -30,7 +30,7 @@ const Navbar = () => {
         {
           // Settings Modal
           isSettingsModalOpen && (
-            <div className="top-20 right-4 absolute flex flex-col w-40 gap-4 p-4 text-black bg-white rounded-md shadow-lg">
+            <div className="top-20 right-4 md:right-20 absolute z-10 flex flex-col w-40 gap-4 p-4 text-black bg-white rounded-md shadow-lg">
               <Link
                 to="/profile"
                 onClick={() => {
