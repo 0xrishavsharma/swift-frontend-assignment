@@ -114,29 +114,7 @@ const Comments = () => {
 
   const handlePostIdSort = () => {};
 
-  // Example sorting function
-  const arr: number[] = [3, 2, 7, 1, 0, 1, 7, 8, 3, 9, 2, 34, 9, 12, 2];
-  type SortingFun = (arr: number[]) => number[];
-  const sortingFun: SortingFun = (arr): number[] => {
-    if (arr.length <= 1) return arr;
-
-    const pivot = arr[0];
-    const left: number[] = [];
-    const right: number[] = [];
-
-    for (let i = 1; i <= arr.length; i++) {
-      if (arr[i] < pivot) left.push(arr[i]);
-      if (arr[i] > pivot) right.push(arr[i]);
-    }
-
-    return [...sortingFun(left), pivot, ...sortingFun(right)];
-  };
-
-  const handleExampleSort = () => {
-    console.log("Array before sorting: ", arr);
-    const res = sortingFun(arr);
-    console.log("Sorted Array: ", res);
-  };
+  const handleExampleSort = () => {};
   return (
     <div className="">
       {/* Sorting and Search */}
