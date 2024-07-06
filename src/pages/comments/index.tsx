@@ -17,7 +17,12 @@ import { useQuery } from "react-query";
 import { IoIosArrowBack } from "react-icons/io";
 import { IoIosArrowForward } from "react-icons/io";
 import { RxCaretSort } from "react-icons/rx";
-import { Button } from "@/components/ui/button";
+import {
+  BsSortAlphaDownAlt,
+  BsSortAlphaUpAlt,
+  BsSortNumericDownAlt,
+  BsSortNumericUpAlt,
+} from "react-icons/bs";
 
 type Comment = {
   body: string;
@@ -28,11 +33,17 @@ type Comment = {
 };
 
 const Comments = () => {
+  const [displayData, setDisplayData] = useState<Comment[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(50);
   const [commentNumber, setCommentNumber] = useState([1, 10]);
   const [visiblePages, setVisiblePages] = useState([1, 2]);
+
+  // Sorting state
+  const [postIdSortMode, setPostIdSortMode] = useState("none");
+  const [nameSortMode, setNameSortMode] = useState("none");
+  const [emailSortMode, setEmailSortMode] = useState("none");
 
   const handleFetchComments = async () => {
     const res = await fetchComments();
@@ -44,7 +55,10 @@ const Comments = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: "comments",
     queryFn: handleFetchComments,
-    onSuccess: () => console.log("Data fetched successfully", data),
+    onSuccess: (data) => {
+      setDisplayData(data);
+      console.log("displayData in place: ", displayData);
+    },
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
   });
@@ -112,25 +126,119 @@ const Comments = () => {
     setCommentNumber([startNumber, Math.min(endNumber, data?.length || 0)]);
   }, [currentPage, pageSize, data]);
 
-  const handlePostIdSort = () => {};
+  const handlePostIdSort = () => {
+    const nextPostIdSortMode =
+      postIdSortMode === "none"
+        ? "ascending"
+        : postIdSortMode === "ascending"
+          ? "descending"
+          : "none";
+    setNameSortMode("none");
+    setEmailSortMode("none");
+    setPostIdSortMode(nextPostIdSortMode);
+    let sortedData: Comment[];
+    if (nextPostIdSortMode === "ascending") {
+      sortedData = [...data]?.sort((a, b) => a.id - b.id);
+    } else if (nextPostIdSortMode === "descending") {
+      sortedData = [...data]?.sort((a, b) => b.id - a.id);
+    } else {
+      sortedData = [...data];
+    }
+    setDisplayData(sortedData);
+  };
 
-  const handleExampleSort = () => {};
+  const handleNameSort = () => {
+    const nextNameSortMode =
+      nameSortMode === "none"
+        ? "ascending"
+        : nameSortMode === "ascending"
+          ? "descending"
+          : "none";
+    setPostIdSortMode("none");
+    setEmailSortMode("none");
+    setNameSortMode(nextNameSortMode);
+    let sortedData: Comment[];
+    if (nextNameSortMode === "ascending") {
+      sortedData = [...displayData].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+    } else if (nextNameSortMode === "descending") {
+      sortedData = [...displayData].sort((a, b) =>
+        b.name.localeCompare(a.name),
+      );
+    } else {
+      sortedData = [...data]; // Assuming 'data' is the original unsorted data
+    }
+    setDisplayData(sortedData);
+  };
+
+  const handleEmailSort = () => {
+    const nextEmailSortMode =
+      emailSortMode === "none"
+        ? "ascending"
+        : emailSortMode === "ascending"
+          ? "descending"
+          : "none";
+    setNameSortMode("none");
+    setPostIdSortMode("none");
+    setEmailSortMode(nextEmailSortMode);
+    let sortedData: Comment[];
+    if (nextEmailSortMode === "ascending") {
+      sortedData = [...displayData].sort((a, b) =>
+        a.email.localeCompare(b.email),
+      );
+    } else if (nextEmailSortMode === "descending") {
+      sortedData = [...displayData].sort((a, b) =>
+        b.email.localeCompare(a.email),
+      );
+    } else {
+      sortedData = [...data]; // Assuming 'data' is the original unsorted data
+    }
+    setDisplayData(sortedData);
+  };
   return (
-    <div className="">
+    <div className="flex flex-col gap-6">
       {/* Sorting and Search */}
       <div className="flex justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
-            className="bg-box-shadow flex items-center gap-3"
+            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm"
             onClick={handlePostIdSort}
           >
-            Sort Post ID <RxCaretSort />
+            Sort Post ID
+            {postIdSortMode === "ascending" ? (
+              <BsSortNumericUpAlt className="text-lg" />
+            ) : postIdSortMode === "descending" ? (
+              <BsSortNumericDownAlt className="text-lg" />
+            ) : (
+              <RxCaretSort className="text-lg" />
+            )}
           </button>
-          <button className="bg-box-shadow flex items-center gap-3">
-            Sort Name <RxCaretSort />
+          <button
+            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm"
+            onClick={handleNameSort}
+          >
+            Sort Name
+            {nameSortMode === "ascending" ? (
+              <BsSortAlphaUpAlt className="text-lg" />
+            ) : nameSortMode === "descending" ? (
+              <BsSortAlphaDownAlt className="text-lg" />
+            ) : (
+              <RxCaretSort className="text-lg" />
+            )}
           </button>
-          <button className="bg-box-shadow flex items-center gap-3">
-            Sort Email <RxCaretSort />
+          <button
+            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm"
+            onClick={handleEmailSort}
+          >
+            Sort Email
+            {emailSortMode === "ascending" ? (
+              <BsSortAlphaUpAlt className="text-lg" />
+            ) : emailSortMode === "descending" ? (
+              <BsSortAlphaDownAlt className="text-lg" />
+            ) : (
+              <RxCaretSort className="text-lg" />
+            )}
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -147,7 +255,6 @@ const Comments = () => {
       {/* Comments table */}
       <div>
         <Table className={cn("bg-box-shadow", "rounded-lg")}>
-          <Button onClick={handleExampleSort}>Handle Example Sort</Button>
           <TableCaption>
             {/* Pagination Controls*/}
             <div className="flex items-center justify-end gap-3">
@@ -244,8 +351,8 @@ const Comments = () => {
             }
             {
               /* Data state */
-              data?.length > 0 &&
-                data
+              displayData?.length > 0 &&
+                displayData
                   ?.slice(
                     currentPage * pageSize - pageSize,
                     currentPage * pageSize,
