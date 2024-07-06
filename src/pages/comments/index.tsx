@@ -13,7 +13,7 @@ import { fetchComments } from "@/http/api";
 import { cn } from "@/lib/utils";
 import { useQuery } from "react-query";
 
-// icons
+// React icons
 import { IoIosArrowBack } from "react-icons/io";
 import { IoIosArrowForward } from "react-icons/io";
 import { RxCaretSort } from "react-icons/rx";
@@ -23,6 +23,7 @@ import {
   BsSortNumericDownAlt,
   BsSortNumericUpAlt,
 } from "react-icons/bs";
+import { CiSearch } from "react-icons/ci";
 
 type Comment = {
   body: string;
@@ -40,10 +41,11 @@ const Comments = () => {
   const [commentNumber, setCommentNumber] = useState([1, 10]);
   const [visiblePages, setVisiblePages] = useState([1, 2]);
 
-  // Sorting state
+  // Sorting and Search(Filtering) state
   const [postIdSortMode, setPostIdSortMode] = useState("none");
   const [nameSortMode, setNameSortMode] = useState("none");
   const [emailSortMode, setEmailSortMode] = useState("none");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleFetchComments = async () => {
     const res = await fetchComments();
@@ -116,16 +118,7 @@ const Comments = () => {
     setVisiblePages(newVisiblePages);
   };
 
-  useEffect(() => {
-    setTotalPages(data && Math.ceil(data.length / pageSize));
-  }, [pageSize, data]);
-
-  useEffect(() => {
-    const startNumber = (currentPage - 1) * pageSize + 1;
-    const endNumber = startNumber + pageSize - 1;
-    setCommentNumber([startNumber, Math.min(endNumber, data?.length || 0)]);
-  }, [currentPage, pageSize, data]);
-
+  // Post Id Sorting
   const handlePostIdSort = () => {
     const nextPostIdSortMode =
       postIdSortMode === "none"
@@ -147,6 +140,7 @@ const Comments = () => {
     setDisplayData(sortedData);
   };
 
+  // Name Sorting
   const handleNameSort = () => {
     const nextNameSortMode =
       nameSortMode === "none"
@@ -172,6 +166,7 @@ const Comments = () => {
     setDisplayData(sortedData);
   };
 
+  // Email Sorting
   const handleEmailSort = () => {
     const nextEmailSortMode =
       emailSortMode === "none"
@@ -196,13 +191,42 @@ const Comments = () => {
     }
     setDisplayData(sortedData);
   };
+
+  // Search and filtering
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  useEffect(() => {
+    setTotalPages(data && Math.ceil(data.length / pageSize));
+  }, [pageSize, data]);
+
+  useEffect(() => {
+    const startNumber = (currentPage - 1) * pageSize + 1;
+    const endNumber = startNumber + pageSize - 1;
+    setCommentNumber([startNumber, Math.min(endNumber, data?.length || 0)]);
+  }, [currentPage, pageSize, data]);
+
+  useEffect(() => {
+    // Filtering data based on search query
+    const filteredData = data.filter((comment: Comment) => {
+      return (
+        comment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        comment.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        comment.body.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+
+    // Updating displayData with filtered data
+    setDisplayData(filteredData);
+  }, [searchQuery, data]);
   return (
     <div className="flex flex-col gap-6">
       {/* Sorting and Search */}
       <div className="flex justify-between">
         <div className="flex items-center gap-4">
           <button
-            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm"
+            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600"
             onClick={handlePostIdSort}
           >
             Sort Post ID
@@ -215,7 +239,7 @@ const Comments = () => {
             )}
           </button>
           <button
-            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm"
+            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600"
             onClick={handleNameSort}
           >
             Sort Name
@@ -228,7 +252,7 @@ const Comments = () => {
             )}
           </button>
           <button
-            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm"
+            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600"
             onClick={handleEmailSort}
           >
             Sort Email
@@ -241,15 +265,16 @@ const Comments = () => {
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3">
+        {/* Search and Filter results */}
+        <div className="bg-box-shadow md:w-80 flex items-center gap-3 px-5 py-2 rounded-md">
+          <CiSearch />
           <input
             type="text"
-            placeholder="Search comments"
-            className="focus:outline-none px-3 py-1 border-gray-300 rounded-md"
+            placeholder="Search name, email, comments"
+            className="focus:outline-none placeholder:text-sm w-full border-gray-300"
+            onChange={handleSearchInput}
+            onKeyDown={(e) => e.key === "enter" && handleSearchInput}
           />
-          <button className="bg-primary px-4 py-1 text-white rounded-md">
-            Search
-          </button>
         </div>
       </div>
       {/* Comments table */}
