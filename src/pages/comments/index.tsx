@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   Table,
   TableBody,
@@ -14,7 +16,8 @@ import { useQuery } from "react-query";
 // icons
 import { IoIosArrowBack } from "react-icons/io";
 import { IoIosArrowForward } from "react-icons/io";
-import { useEffect, useState } from "react";
+import { RxCaretSort } from "react-icons/rx";
+import { Button } from "@/components/ui/button";
 
 type Comment = {
   body: string;
@@ -30,6 +33,7 @@ const Comments = () => {
   const [totalPages, setTotalPages] = useState(50);
   const [commentNumber, setCommentNumber] = useState([1, 10]);
   const [visiblePages, setVisiblePages] = useState([1, 2]);
+
   const handleFetchComments = async () => {
     const res = await fetchComments();
     const data = res.data;
@@ -41,6 +45,8 @@ const Comments = () => {
     queryKey: "comments",
     queryFn: handleFetchComments,
     onSuccess: () => console.log("Data fetched successfully", data),
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
   });
 
   const prevPageHandler = () => {
@@ -81,27 +87,20 @@ const Comments = () => {
     }
 
     // For all other cases, show the current and next page
-    return [currentPage, Math.min(currentPage + 1, totalPages)];
+    // return [currentPage, Math.min(currentPage + 1, totalPages)];
+    return [currentPage, currentPage + 1];
   };
 
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPageSize = parseInt(e.target.value);
-    const firstItemIndex = (currentPage - 1) * pageSize; // Calculating the index of the first item on the current page
-    const newCurrentPage = Math.floor(firstItemIndex / newPageSize) + 1; // Calculating the new current page
+    const newCurrentPage = 1;
 
     setPageSize(newPageSize);
-    setCurrentPage(newCurrentPage); // Update the current page based on the new page size
+    setCurrentPage(1); // resetting the currentPage
 
     const newVisiblePages = calculateVisiblePages(newCurrentPage, totalPages);
     setVisiblePages(newVisiblePages);
   };
-
-  useEffect(() => {
-    setTotalPages(data ? Math.ceil(data.length / pageSize) : 0); // Recalculate total pages when data or pageSize changes
-    const startNumber = (currentPage - 1) * pageSize + 1;
-    const endNumber = startNumber + pageSize - 1;
-    setCommentNumber([startNumber, Math.min(endNumber, data?.length || 0)]); // Adjust commentNumber based on the new currentPage and pageSize
-  }, [data, pageSize, currentPage]);
 
   useEffect(() => {
     setTotalPages(data && Math.ceil(data.length / pageSize));
@@ -112,13 +111,65 @@ const Comments = () => {
     const endNumber = startNumber + pageSize - 1;
     setCommentNumber([startNumber, Math.min(endNumber, data?.length || 0)]);
   }, [currentPage, pageSize, data]);
+
+  const handlePostIdSort = () => {};
+
+  // Example sorting function
+  const arr: number[] = [3, 2, 7, 1, 0, 1, 7, 8, 3, 9, 2, 34, 9, 12, 2];
+  type SortingFun = (arr: number[]) => number[];
+  const sortingFun: SortingFun = (arr): number[] => {
+    if (arr.length <= 1) return arr;
+
+    const pivot = arr[0];
+    const left: number[] = [];
+    const right: number[] = [];
+
+    for (let i = 1; i <= arr.length; i++) {
+      if (arr[i] < pivot) left.push(arr[i]);
+      if (arr[i] > pivot) right.push(arr[i]);
+    }
+
+    return [...sortingFun(left), pivot, ...sortingFun(right)];
+  };
+
+  const handleExampleSort = () => {
+    console.log("Array before sorting: ", arr);
+    const res = sortingFun(arr);
+    console.log("Sorted Array: ", res);
+  };
   return (
     <div className="">
       {/* Sorting and Search */}
-      <div className="flex justify-between"></div>
+      <div className="flex justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            className="bg-box-shadow flex items-center gap-3"
+            onClick={handlePostIdSort}
+          >
+            Sort Post ID <RxCaretSort />
+          </button>
+          <button className="bg-box-shadow flex items-center gap-3">
+            Sort Name <RxCaretSort />
+          </button>
+          <button className="bg-box-shadow flex items-center gap-3">
+            Sort Email <RxCaretSort />
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Search comments"
+            className="focus:outline-none px-3 py-1 border-gray-300 rounded-md"
+          />
+          <button className="bg-primary px-4 py-1 text-white rounded-md">
+            Search
+          </button>
+        </div>
+      </div>
       {/* Comments table */}
       <div>
         <Table className={cn("bg-box-shadow", "rounded-lg")}>
+          <Button onClick={handleExampleSort}>Handle Example Sort</Button>
           <TableCaption>
             {/* Pagination Controls*/}
             <div className="flex items-center justify-end gap-3">
@@ -167,10 +218,9 @@ const Comments = () => {
                 <select
                   onChange={handlePageSizeChange}
                   className="hover:border-gray-400 focus:outline-none text-gray-700 bg-white border-gray-300 rounded-md"
+                  defaultValue={10}
                 >
-                  <option value="10" selected>
-                    10 / Page
-                  </option>
+                  <option value="10">10 / Page</option>
                   <option value="50">50 / Page</option>
                   <option value="100">100 / Page</option>
                 </select>
@@ -218,7 +268,7 @@ const Comments = () => {
               /* Data state */
               data?.length > 0 &&
                 data
-                  .slice(
+                  ?.slice(
                     currentPage * pageSize - pageSize,
                     currentPage * pageSize,
                   )
@@ -227,7 +277,7 @@ const Comments = () => {
                       <TableRow key={comment.id} className="">
                         <TableCell>{comment.id}</TableCell>
                         <TableCell>{comment.name}</TableCell>
-                        <TableCell>{comment.email}</TableCell>
+                        <TableCell>{comment.email.toLowerCase()}</TableCell>
                         <TableCell className="">{comment.body}</TableCell>
                       </TableRow>
                     );
