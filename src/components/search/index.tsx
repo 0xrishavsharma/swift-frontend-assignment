@@ -8,7 +8,7 @@ interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ handleSearchInput }) => {
-  const { activity } = useAuthStore();
+  const { userActivity } = useAuthStore();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleClearSearchInput = () => {
@@ -27,7 +27,7 @@ const Search: React.FC<SearchProps> = ({ handleSearchInput }) => {
         type="text"
         placeholder="Search name, email, comments"
         className="focus:outline-none placeholder:text-sm w-full border-gray-300"
-        value={activity.searchQuery}
+        value={userActivity.searchQuery}
         onChange={handleSearchInput}
       />
       <button>

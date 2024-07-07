@@ -32,7 +32,7 @@ import { useAuthStore } from "@/store";
 
 const Comments = () => {
   const [originalData, setOriginalData] = useState<Comment[]>([]);
-  const { activity, setUserActivity } = useAuthStore();
+  const { userActivity, setUserActivity } = useAuthStore();
 
   // Sorting and Search(Filtering) state
   const [postIdSortMode, setPostIdSortMode] = useState("none");
@@ -132,14 +132,14 @@ const Comments = () => {
   // Search and filtering
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserActivity({
-      page: "1",
+      page: 1,
       pageSize: 10,
       sortType: "postId",
       sortMode: "none",
       searchQuery: e.target.value,
     });
     setSearchQuery(
-      activity?.searchQuery ? activity.searchQuery : e.target.value,
+      userActivity?.searchQuery ? userActivity.searchQuery : e.target.value,
     );
   };
 
@@ -191,10 +191,10 @@ const Comments = () => {
   ]);
 
   useEffect(() => {
-    if (activity) {
-      setSearchQuery(activity.searchQuery || "");
+    if (userActivity) {
+      setSearchQuery(userActivity.searchQuery || "");
     }
-  }, [activity]);
+  }, [userActivity]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -202,7 +202,12 @@ const Comments = () => {
       <div className="flex justify-between">
         <div className="flex items-center gap-4">
           <button
-            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600"
+            className={cn(
+              postIdSortMode === "ascending" || postIdSortMode === "descending"
+                ? " border-primary shadow-xl"
+                : "border-transparent bg-box-shadow ",
+              "flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600 border-2",
+            )}
             onClick={handlePostIdSort}
           >
             Sort Post ID
@@ -215,7 +220,12 @@ const Comments = () => {
             )}
           </button>
           <button
-            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600"
+            className={cn(
+              nameSortMode === "ascending" || nameSortMode === "descending"
+                ? " border-primary shadow-xl"
+                : "border-transparent bg-box-shadow",
+              "flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600 border-2 ",
+            )}
             onClick={handleNameSort}
           >
             Sort Name
@@ -228,7 +238,12 @@ const Comments = () => {
             )}
           </button>
           <button
-            className="bg-box-shadow flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600"
+            className={cn(
+              emailSortMode === "ascending" || emailSortMode === "descending"
+                ? " border-primary shadow-xl"
+                : "border-transparent bg-box-shadow ",
+              "flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600 border-2",
+            )}
             onClick={handleEmailSort}
           >
             Sort Email

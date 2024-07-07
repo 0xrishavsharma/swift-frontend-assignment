@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { useAuthStore } from "@/store";
 
 interface PaginationProps {
   commentRange: [number, number];
@@ -22,7 +23,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalItems,
   currentPage,
   setCurrentPage,
-  pageSize,
+  // pageSize,
   setPageSize,
   totalPages,
   visiblePages,
@@ -31,6 +32,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const { userActivity, setUserActivity } = useAuthStore();
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
@@ -38,8 +40,9 @@ export const Pagination: React.FC<PaginationProps> = ({
   };
 
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newPageSize = parseInt(e.target.value);
-    setPageSize(newPageSize);
+    const newPageSize = +e.target.value;
+    setUserActivity({ ...userActivity, pageSize: newPageSize });
+    setPageSize(newPageSize); // Use the new page size directly
     setCurrentPage(1);
     onPageSizeChange(newPageSize);
   };
@@ -89,7 +92,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <select
           onChange={handlePageSizeChange}
           className="hover:border-gray-400 focus:outline-none text-gray-700 bg-white border-gray-300 rounded-md"
-          value={pageSize}
+          value={userActivity?.pageSize}
         >
           <option value="10">10 / Page</option>
           <option value="50">50 / Page</option>

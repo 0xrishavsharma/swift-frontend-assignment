@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/store";
 import { useState, useEffect } from "react";
 
 interface UsePaginationProps {
@@ -10,7 +11,7 @@ interface UsePaginationReturn {
   currentPage: number;
   pageSize: number;
   totalPages: number;
-  visiblePages: [number, number];
+  visiblePages: [number] | [number, number];
   commentRange: [number, number];
   setCurrentPage: (page: number) => void;
   prevPage: () => void;
@@ -21,14 +22,17 @@ interface UsePaginationReturn {
 export const usePagination = ({
   totalItems,
   initialPageSize = 10,
-  initialPage = 1,
+  // initialPage = 1,
 }: UsePaginationProps): UsePaginationReturn => {
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const { userActivity, setUserActivity } = useAuthStore();
+  const [currentPage, setCurrentPage] = useState(userActivity.page);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [totalPages, setTotalPages] = useState(
     Math.ceil(totalItems / pageSize),
   );
-  const [visiblePages, setVisiblePages] = useState<[number, number]>([1, 2]);
+  const [visiblePages, setVisiblePages] = useState<[number] | [number, number]>(
+    [userActivity.page, userActivity.page + 1],
+  );
   const [commentRange, setCommentRange] = useState<[number, number]>([
     1,
     pageSize,
@@ -59,16 +63,9 @@ export const usePagination = ({
   const calculateVisiblePages = (
     current: number,
     total: number,
-  ): [number, number] => {
-    console.log(
-      "Current: ",
-      current,
-      "Total: ",
-      total,
-      "Total Pages: ",
-      totalPages,
-    );
-    if (total <= 1) return [1, Math.max(1, total)];
+  ): [number] | [number, number] => {
+    setUserActivity({ ...userActivity, page: current });
+    if (total <= 1) return [1];
     if (current === 1) return [1, 2];
     if (current === total) return [total - 1, total];
     return [current, current + 1];
@@ -76,6 +73,7 @@ export const usePagination = ({
 
   useEffect(() => {
     setVisiblePages(calculateVisiblePages(currentPage, totalPages));
+    // setVisiblePages(calculateVisiblePages(userActivity.page, totalPages));
   }, [currentPage, totalPages]);
 
   return {
