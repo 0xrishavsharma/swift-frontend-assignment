@@ -42,8 +42,8 @@ export const Pagination: React.FC<PaginationProps> = ({
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPageSize = +e.target.value;
     setUserActivity({ ...userActivity, pageSize: newPageSize });
-    setPageSize(newPageSize); // Use the new page size directly
-    setCurrentPage(1);
+    setPageSize(newPageSize);
+    // setCurrentPage(1);
     onPageSizeChange(newPageSize);
   };
 

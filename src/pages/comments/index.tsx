@@ -35,9 +35,15 @@ const Comments = () => {
   const { userActivity, setUserActivity } = useAuthStore();
 
   // Sorting and Search(Filtering) state
-  const [postIdSortMode, setPostIdSortMode] = useState("none");
-  const [nameSortMode, setNameSortMode] = useState("none");
-  const [emailSortMode, setEmailSortMode] = useState("none");
+  const [postIdSortMode, setPostIdSortMode] = useState<
+    "ascending" | "descending" | "none"
+  >(userActivity?.sortType === "postId" ? userActivity.sortMode : "none");
+  const [nameSortMode, setNameSortMode] = useState<
+    "ascending" | "descending" | "none"
+  >(userActivity?.sortType === "name" ? userActivity.sortMode : "none");
+  const [emailSortMode, setEmailSortMode] = useState<
+    "ascending" | "descending" | "none"
+  >(userActivity?.sortType === "email" ? userActivity.sortMode : "none");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState<Comment[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -94,12 +100,16 @@ const Comments = () => {
   const handlePostIdSort = () => {
     setNameSortMode("none");
     setEmailSortMode("none");
-    setPostIdSortMode((prevPostIdSortMode) => {
-      return prevPostIdSortMode === "none"
-        ? "ascending"
-        : prevPostIdSortMode === "ascending"
-          ? "descending"
+    const nextPostIdSortMode =
+      postIdSortMode === "none"
+        ? "descending"
+        : postIdSortMode === "descending"
+          ? "ascending"
           : "none";
+    setUserActivity({
+      ...userActivity,
+      sortType: "postId",
+      sortMode: nextPostIdSortMode,
     });
   };
 
@@ -107,12 +117,17 @@ const Comments = () => {
   const handleNameSort = () => {
     setPostIdSortMode("none");
     setEmailSortMode("none");
-    setNameSortMode((prevEmailSortMode) => {
-      return prevEmailSortMode === "none"
-        ? "ascending"
-        : prevEmailSortMode === "ascending"
-          ? "descending"
+    const nextNameSortMode =
+      nameSortMode === "none"
+        ? "descending"
+        : nameSortMode === "descending"
+          ? "ascending"
           : "none";
+    setNameSortMode(nextNameSortMode);
+    setUserActivity({
+      ...userActivity,
+      sortType: "name",
+      sortMode: nextNameSortMode,
     });
   };
 
@@ -120,22 +135,24 @@ const Comments = () => {
   const handleEmailSort = () => {
     setNameSortMode("none");
     setPostIdSortMode("none");
-    setEmailSortMode((prevEmailSortMode) => {
-      return prevEmailSortMode === "none"
-        ? "ascending"
-        : prevEmailSortMode === "ascending"
-          ? "descending"
+    const nextNameSortMode =
+      emailSortMode === "none"
+        ? "descending"
+        : nameSortMode === "descending"
+          ? "ascending"
           : "none";
+    setEmailSortMode(nextNameSortMode);
+    setUserActivity({
+      ...userActivity,
+      sortType: "email",
+      sortMode: nextNameSortMode,
     });
   };
 
   // Search and filtering
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserActivity({
-      page: 1,
-      pageSize: 10,
-      sortType: "postId",
-      sortMode: "none",
+      ...userActivity,
       searchQuery: e.target.value,
     });
     setSearchQuery(
@@ -181,7 +198,7 @@ const Comments = () => {
     }
 
     setFilteredData(newFilteredData);
-    setCurrentPage(1); // Reset to first page when data changes
+    // setCurrentPage(1); // Reset to first page when data changes
   }, [
     originalData,
     debouncedSearchQuery,
@@ -204,11 +221,12 @@ const Comments = () => {
           <button
             className={cn(
               postIdSortMode === "ascending" || postIdSortMode === "descending"
-                ? " border-primary shadow-xl"
+                ? " border-primary shadow-xl bg-gray-100"
                 : "border-transparent bg-box-shadow ",
               "flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600 border-2",
             )}
             onClick={handlePostIdSort}
+            value={userActivity ? userActivity.sortMode : "none"}
           >
             Sort Post ID
             {postIdSortMode === "ascending" ? (
@@ -222,11 +240,12 @@ const Comments = () => {
           <button
             className={cn(
               nameSortMode === "ascending" || nameSortMode === "descending"
-                ? " border-primary shadow-xl"
+                ? " border-primary shadow-xl bg-gray-100"
                 : "border-transparent bg-box-shadow",
               "flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600 border-2 ",
             )}
             onClick={handleNameSort}
+            value={userActivity ? userActivity.sortMode : "none"}
           >
             Sort Name
             {nameSortMode === "ascending" ? (
@@ -240,11 +259,12 @@ const Comments = () => {
           <button
             className={cn(
               emailSortMode === "ascending" || emailSortMode === "descending"
-                ? " border-primary shadow-xl"
+                ? " border-primary shadow-xl bg-gray-100"
                 : "border-transparent bg-box-shadow ",
               "flex items-center gap-3 px-2 py-0.5 rounded-sm text-gray-600 border-2",
             )}
             onClick={handleEmailSort}
+            value={userActivity ? userActivity.sortMode : "none"}
           >
             Sort Email
             {emailSortMode === "ascending" ? (

@@ -72,9 +72,10 @@ export const usePagination = ({
   };
 
   useEffect(() => {
+    console.log("Current page from userActivity", userActivity.page);
     setVisiblePages(calculateVisiblePages(currentPage, totalPages));
     // setVisiblePages(calculateVisiblePages(userActivity.page, totalPages));
-  }, [currentPage, totalPages]);
+  }, [currentPage, totalPages, userActivity.page]);
 
   return {
     currentPage,

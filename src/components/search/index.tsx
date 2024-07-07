@@ -8,12 +8,13 @@ interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ handleSearchInput }) => {
-  const { userActivity } = useAuthStore();
+  const { userActivity, setUserActivity } = useAuthStore();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleClearSearchInput = () => {
     if (searchInputRef.current) {
       searchInputRef.current.value = "";
+      setUserActivity({ ...userActivity, searchQuery: "" });
     }
     handleSearchInput({
       target: { value: "" },

@@ -55,7 +55,13 @@ const getUserActivityFromLocalStorage = (): UserActivity => {
   const userActivity = localStorage.getItem("userActivity");
   return userActivity
     ? JSON.parse(userActivity)
-    : { page: 1, pageSize: 10, sortType: "postId", sortMode: "none" };
+    : {
+        page: 1,
+        pageSize: 10,
+        sortType: "postId",
+        sortMode: "none",
+        searchQuery: "",
+      };
 };
 export const useAuthStore = create<AuthState & UserActivityState>()(
   devtools((set) => ({
