@@ -12,15 +12,18 @@ const Navbar = () => {
 
   return (
     <div className="bg-primary flex items-center justify-center w-screen h-24 max-w-full text-white">
-      <div className=" flex justify-between items-center max-w-[1440px] w-full px-6 sm:px-12">
-        {/* <img
-          src="https://cdn.prod.website-files.com/6509887b9119507025235a5a/650ada40fd6cf3427547c9d8_Swift%20logo.svg"
-          alt="Swift Logo"
-          className="mix-blend-color-burn"
-        /> */}
-        <Link to="/" className=" text-xl font-bold">
-          Swift
-        </Link>
+      <div className="flex justify-between items-center max-w-[1440px] w-full px-6 sm:px-12">
+        <div className="flex">
+          <img
+            src="https://cdn.prod.website-files.com/6509887b9119507025235a5a/6509a12a2fa6ac8c3b91e76c_Favicon-%20MBL.png"
+            alt="Swift Logo"
+            className="sm:w-8 sm:h-8 w-6 h-6"
+          />
+          <Link to="/" className="text-xl font-light tracking-widest uppercase">
+            wift
+          </Link>
+        </div>
+
         <div className="relative flex items-center gap-4">
           <button
             onClick={() => setIsSettingsModalOpen(!isSettingsModalOpen)}

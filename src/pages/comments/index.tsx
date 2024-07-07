@@ -16,7 +16,7 @@ import useDebounce from "@/hooks/useDebounce";
 import useSearchAndHighlight from "@/hooks/useSearchAndHighlight";
 import DOMPurify from "dompurify";
 import { Comment } from "@/types";
-import { Pagination } from "@/components/pagination";
+import { Pagination } from "@/components/paginatinon";
 import { usePagination } from "@/hooks/usePagination";
 import Search from "@/components/search";
 
@@ -216,7 +216,7 @@ const Comments = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Sorting and Search */}
-      <div className="flex justify-between">
+      <div className="lg:flex-row lg:justify-between flex flex-col gap-8">
         <div className="flex items-center gap-4">
           <button
             className={cn(
@@ -281,7 +281,7 @@ const Comments = () => {
       </div>
       {/* Comments table */}
       <div>
-        <Table className={cn("bg-box-shadow", "rounded-lg")}>
+        <Table className={cn("bg-box-shadow", "rounded-lg overflow-scroll")}>
           <TableCaption>
             {/* Pagination Controls*/}
             <Pagination
