@@ -32,11 +32,12 @@ export interface UserActivity {
   pageSize: number;
   sortType: "postId" | "name" | "email";
   sortMode: "ascending" | "descending" | "none";
+  searchQuery?: string;
 }
 
 interface UserActivityState {
   activity: UserActivity;
-  setActivity: (activity: UserActivity) => void;
+  setUserActivity: (activity: UserActivity) => void;
 }
 
 interface AuthState {
@@ -44,7 +45,7 @@ interface AuthState {
   setUser: (user: User) => void;
   logout: () => void;
   activity: UserActivity;
-  setActivity: (activity: UserActivity) => void;
+  setUserActivity: (activity: UserActivity) => void;
 }
 const getUserFromLocalStorage = () => {
   const user = localStorage.getItem("user");
@@ -54,7 +55,7 @@ const getUserActivityFromLocalStorage = (): UserActivity => {
   const activity = localStorage.getItem("userActivity");
   return activity
     ? JSON.parse(activity)
-    : { page: "1", pageSize: 10, sortType: "name", sortMode: "none" };
+    : { page: "1", pageSize: 10, sortType: "postId", sortMode: "none" };
 };
 export const useAuthStore = create<AuthState & UserActivityState>()(
   devtools((set) => ({
@@ -69,7 +70,7 @@ export const useAuthStore = create<AuthState & UserActivityState>()(
       router.navigate("/auth/login");
     },
     activity: getUserActivityFromLocalStorage(),
-    setActivity: (activity) => {
+    setUserActivity: (activity) => {
       localStorage.setItem("userActivity", JSON.stringify(activity));
       set({ activity });
     },

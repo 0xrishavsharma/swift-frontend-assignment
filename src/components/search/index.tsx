@@ -1,13 +1,16 @@
 import { CiSearch } from "react-icons/ci";
 import { CgCloseO } from "react-icons/cg";
 import React, { useRef } from "react";
+import { useAuthStore } from "@/store";
 
 interface SearchProps {
   handleSearchInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Search: React.FC<SearchProps> = ({ handleSearchInput }) => {
+  const { activity } = useAuthStore();
   const searchInputRef = useRef<HTMLInputElement>(null);
+
   const handleClearSearchInput = () => {
     if (searchInputRef.current) {
       searchInputRef.current.value = "";
@@ -24,6 +27,7 @@ const Search: React.FC<SearchProps> = ({ handleSearchInput }) => {
         type="text"
         placeholder="Search name, email, comments"
         className="focus:outline-none placeholder:text-sm w-full border-gray-300"
+        value={activity.searchQuery}
         onChange={handleSearchInput}
       />
       <button>

@@ -28,9 +28,11 @@ import {
   BsSortNumericDownAlt,
   BsSortNumericUpAlt,
 } from "react-icons/bs";
+import { useAuthStore } from "@/store";
 
 const Comments = () => {
   const [originalData, setOriginalData] = useState<Comment[]>([]);
+  const { activity, setUserActivity } = useAuthStore();
 
   // Sorting and Search(Filtering) state
   const [postIdSortMode, setPostIdSortMode] = useState("none");
@@ -129,7 +131,16 @@ const Comments = () => {
 
   // Search and filtering
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    setUserActivity({
+      page: "1",
+      pageSize: 10,
+      sortType: "postId",
+      sortMode: "none",
+      searchQuery: e.target.value,
+    });
+    setSearchQuery(
+      activity?.searchQuery ? activity.searchQuery : e.target.value,
+    );
   };
 
   useEffect(() => {
@@ -178,6 +189,12 @@ const Comments = () => {
     nameSortMode,
     emailSortMode,
   ]);
+
+  useEffect(() => {
+    if (activity) {
+      setSearchQuery(activity.searchQuery || "");
+    }
+  }, [activity]);
 
   return (
     <div className="flex flex-col gap-6">
