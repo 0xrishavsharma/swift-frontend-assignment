@@ -13,7 +13,6 @@ const Login = () => {
     onSuccess: (response) => {
       const user: User = response.data;
       setUser(user);
-      console.log("Login successful", user);
       router.navigate("/");
     },
     onError: (error) => {

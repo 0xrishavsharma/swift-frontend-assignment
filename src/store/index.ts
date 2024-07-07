@@ -27,16 +27,36 @@ export interface User {
   website: string;
 }
 
+export interface UserActivity {
+  page: string;
+  pageSize: number;
+  sortType: "postId" | "name" | "email";
+  sortMode: "ascending" | "descending" | "none";
+}
+
+interface UserActivityState {
+  activity: UserActivity;
+  setActivity: (activity: UserActivity) => void;
+}
+
 interface AuthState {
   user: User | null;
   setUser: (user: User) => void;
   logout: () => void;
+  activity: UserActivity;
+  setActivity: (activity: UserActivity) => void;
 }
 const getUserFromLocalStorage = () => {
   const user = localStorage.getItem("user");
   return user ? JSON.parse(user) : null;
 };
-export const useAuthStore = create<AuthState>()(
+const getUserActivityFromLocalStorage = (): UserActivity => {
+  const activity = localStorage.getItem("userActivity");
+  return activity
+    ? JSON.parse(activity)
+    : { page: "1", pageSize: 10, sortType: "name", sortMode: "none" };
+};
+export const useAuthStore = create<AuthState & UserActivityState>()(
   devtools((set) => ({
     user: getUserFromLocalStorage(),
     setUser: (user) => {
@@ -47,6 +67,11 @@ export const useAuthStore = create<AuthState>()(
       localStorage.removeItem("user");
       set({ user: null });
       router.navigate("/auth/login");
+    },
+    activity: getUserActivityFromLocalStorage(),
+    setActivity: (activity) => {
+      localStorage.setItem("userActivity", JSON.stringify(activity));
+      set({ activity });
     },
   })),
 );

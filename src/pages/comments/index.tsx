@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Table,
@@ -12,10 +12,15 @@ import {
 import { fetchComments } from "@/http/api";
 import { cn } from "@/lib/utils";
 import { useQuery } from "react-query";
+import useDebounce from "@/hooks/useDebounce";
+import useSearchAndHighlight from "@/hooks/useSearchAndHighlight";
+import DOMPurify from "dompurify";
+import { Comment } from "@/types";
+import { Pagination } from "@/components/pagination";
+import { usePagination } from "@/hooks/usePagination";
+import Search from "@/components/search";
 
 // React icons
-import { IoIosArrowBack } from "react-icons/io";
-import { IoIosArrowForward } from "react-icons/io";
 import { RxCaretSort } from "react-icons/rx";
 import {
   BsSortAlphaDownAlt,
@@ -23,173 +28,103 @@ import {
   BsSortNumericDownAlt,
   BsSortNumericUpAlt,
 } from "react-icons/bs";
-import { CiSearch } from "react-icons/ci";
-
-type Comment = {
-  body: string;
-  email: string;
-  id: number;
-  name: string;
-  postId: number;
-};
 
 const Comments = () => {
-  const [displayData, setDisplayData] = useState<Comment[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(50);
-  const [commentNumber, setCommentNumber] = useState([1, 10]);
-  const [visiblePages, setVisiblePages] = useState([1, 2]);
+  const [originalData, setOriginalData] = useState<Comment[]>([]);
 
   // Sorting and Search(Filtering) state
   const [postIdSortMode, setPostIdSortMode] = useState("none");
   const [nameSortMode, setNameSortMode] = useState("none");
   const [emailSortMode, setEmailSortMode] = useState("none");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filteredData, setFilteredData] = useState<Comment[]>([]);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  const memoizedSearchAndFilterKeys = useMemo(
+    () => ["id", "name", "email", "body"] as (keyof Comment)[],
+    [],
+  );
+  const highlightedData = useSearchAndHighlight(
+    filteredData,
+    debouncedSearchQuery,
+    {
+      query: debouncedSearchQuery,
+      keys: memoizedSearchAndFilterKeys,
+    },
+  );
+
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    visiblePages,
+    commentRange,
+    setCurrentPage,
+    prevPage,
+    nextPage,
+    setPageSize,
+  } = usePagination({
+    totalItems: filteredData?.length,
+  });
 
   const handleFetchComments = async () => {
     const res = await fetchComments();
-    const data = res.data;
-    console.log(data);
     return res.data;
   };
 
-  const { data, isLoading, isError } = useQuery({
+  const { isLoading, isError } = useQuery({
     queryKey: "comments",
     queryFn: handleFetchComments,
     onSuccess: (data) => {
-      setDisplayData(data);
-      console.log("displayData in place: ", displayData);
+      setOriginalData(data);
+      setFilteredData(data);
     },
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
   });
 
-  const prevPageHandler = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-      if (currentPage <= visiblePages[0]) {
-        setVisiblePages((prev) => [prev[0] - 1, prev[1] - 1]);
-      }
-    }
-  };
-
-  const nextPageHandler = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-      if (currentPage >= visiblePages[1]) {
-        setVisiblePages((prev) => [prev[0] + 1, prev[1] + 1]);
-      }
-    }
-  };
-
-  const calculateVisiblePages = (
-    currentPage: number,
-    totalPages: number,
-  ): [number, number] => {
-    // Handle case where there are less than 2 total pages
-    if (totalPages <= 1) {
-      return [1, Math.max(1, totalPages)];
-    }
-
-    // If on the first page, show the first two pages
-    if (currentPage === 1) {
-      return [1, 2];
-    }
-
-    // If on the last page, show the last two pages
-    if (currentPage === totalPages) {
-      return [totalPages - 1, totalPages];
-    }
-
-    // For all other cases, show the current and next page
-    // return [currentPage, Math.min(currentPage + 1, totalPages)];
-    return [currentPage, currentPage + 1];
-  };
-
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newPageSize = parseInt(e.target.value);
-    const newCurrentPage = 1;
-
-    setPageSize(newPageSize);
-    setCurrentPage(1); // resetting the currentPage
-
-    const newVisiblePages = calculateVisiblePages(newCurrentPage, totalPages);
-    setVisiblePages(newVisiblePages);
+  const handlePageSizeChange = (_newPageSize: number) => {
+    setPageSize(_newPageSize);
+    setCurrentPage(1);
   };
 
   // Post Id Sorting
   const handlePostIdSort = () => {
-    const nextPostIdSortMode =
-      postIdSortMode === "none"
-        ? "ascending"
-        : postIdSortMode === "ascending"
-          ? "descending"
-          : "none";
     setNameSortMode("none");
     setEmailSortMode("none");
-    setPostIdSortMode(nextPostIdSortMode);
-    let sortedData: Comment[];
-    if (nextPostIdSortMode === "ascending") {
-      sortedData = [...data]?.sort((a, b) => a.id - b.id);
-    } else if (nextPostIdSortMode === "descending") {
-      sortedData = [...data]?.sort((a, b) => b.id - a.id);
-    } else {
-      sortedData = [...data];
-    }
-    setDisplayData(sortedData);
+    setPostIdSortMode((prevPostIdSortMode) => {
+      return prevPostIdSortMode === "none"
+        ? "ascending"
+        : prevPostIdSortMode === "ascending"
+          ? "descending"
+          : "none";
+    });
   };
 
   // Name Sorting
   const handleNameSort = () => {
-    const nextNameSortMode =
-      nameSortMode === "none"
-        ? "ascending"
-        : nameSortMode === "ascending"
-          ? "descending"
-          : "none";
     setPostIdSortMode("none");
     setEmailSortMode("none");
-    setNameSortMode(nextNameSortMode);
-    let sortedData: Comment[];
-    if (nextNameSortMode === "ascending") {
-      sortedData = [...displayData].sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-    } else if (nextNameSortMode === "descending") {
-      sortedData = [...displayData].sort((a, b) =>
-        b.name.localeCompare(a.name),
-      );
-    } else {
-      sortedData = [...data]; // Assuming 'data' is the original unsorted data
-    }
-    setDisplayData(sortedData);
+    setNameSortMode((prevEmailSortMode) => {
+      return prevEmailSortMode === "none"
+        ? "ascending"
+        : prevEmailSortMode === "ascending"
+          ? "descending"
+          : "none";
+    });
   };
 
   // Email Sorting
   const handleEmailSort = () => {
-    const nextEmailSortMode =
-      emailSortMode === "none"
-        ? "ascending"
-        : emailSortMode === "ascending"
-          ? "descending"
-          : "none";
     setNameSortMode("none");
     setPostIdSortMode("none");
-    setEmailSortMode(nextEmailSortMode);
-    let sortedData: Comment[];
-    if (nextEmailSortMode === "ascending") {
-      sortedData = [...displayData].sort((a, b) =>
-        a.email.localeCompare(b.email),
-      );
-    } else if (nextEmailSortMode === "descending") {
-      sortedData = [...displayData].sort((a, b) =>
-        b.email.localeCompare(a.email),
-      );
-    } else {
-      sortedData = [...data]; // Assuming 'data' is the original unsorted data
-    }
-    setDisplayData(sortedData);
+    setEmailSortMode((prevEmailSortMode) => {
+      return prevEmailSortMode === "none"
+        ? "ascending"
+        : prevEmailSortMode === "ascending"
+          ? "descending"
+          : "none";
+    });
   };
 
   // Search and filtering
@@ -198,28 +133,52 @@ const Comments = () => {
   };
 
   useEffect(() => {
-    setTotalPages(data && Math.ceil(data.length / pageSize));
-  }, [pageSize, data]);
+    let newFilteredData = [...originalData];
 
-  useEffect(() => {
-    const startNumber = (currentPage - 1) * pageSize + 1;
-    const endNumber = startNumber + pageSize - 1;
-    setCommentNumber([startNumber, Math.min(endNumber, data?.length || 0)]);
-  }, [currentPage, pageSize, data]);
+    // Apply search filter
+    if (debouncedSearchQuery.length > 2) {
+      newFilteredData = newFilteredData.filter((comment: Comment) => {
+        return (
+          comment.name
+            .toLowerCase()
+            .includes(debouncedSearchQuery.toLowerCase()) ||
+          comment.email
+            .toLowerCase()
+            .includes(debouncedSearchQuery.toLowerCase()) ||
+          comment.body
+            .toLowerCase()
+            .includes(debouncedSearchQuery.toLowerCase())
+        );
+      });
+    }
 
-  useEffect(() => {
-    // Filtering data based on search query
-    const filteredData = data.filter((comment: Comment) => {
-      return (
-        comment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        comment.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        comment.body.toLowerCase().includes(searchQuery.toLowerCase())
+    // Apply sorting
+    if (postIdSortMode !== "none") {
+      newFilteredData.sort((a, b) =>
+        postIdSortMode === "ascending" ? a.id - b.id : b.id - a.id,
       );
-    });
+    } else if (nameSortMode !== "none") {
+      newFilteredData.sort((a, b) => {
+        const compare = a.name.localeCompare(b.name);
+        return nameSortMode === "ascending" ? compare : -compare;
+      });
+    } else if (emailSortMode !== "none") {
+      newFilteredData.sort((a, b) => {
+        const compare = a.email.localeCompare(b.email);
+        return emailSortMode === "ascending" ? compare : -compare;
+      });
+    }
 
-    // Updating displayData with filtered data
-    setDisplayData(filteredData);
-  }, [searchQuery, data]);
+    setFilteredData(newFilteredData);
+    setCurrentPage(1); // Reset to first page when data changes
+  }, [
+    originalData,
+    debouncedSearchQuery,
+    postIdSortMode,
+    nameSortMode,
+    emailSortMode,
+  ]);
+
   return (
     <div className="flex flex-col gap-6">
       {/* Sorting and Search */}
@@ -266,76 +225,27 @@ const Comments = () => {
           </button>
         </div>
         {/* Search and Filter results */}
-        <div className="bg-box-shadow md:w-80 flex items-center gap-3 px-5 py-2 rounded-md">
-          <CiSearch />
-          <input
-            type="text"
-            placeholder="Search name, email, comments"
-            className="focus:outline-none placeholder:text-sm w-full border-gray-300"
-            onChange={handleSearchInput}
-            onKeyDown={(e) => e.key === "enter" && handleSearchInput}
-          />
-        </div>
+        <Search handleSearchInput={handleSearchInput} />
       </div>
       {/* Comments table */}
       <div>
         <Table className={cn("bg-box-shadow", "rounded-lg")}>
           <TableCaption>
             {/* Pagination Controls*/}
-            <div className="flex items-center justify-end gap-3">
-              <span className="">
-                {commentNumber[0]}-{commentNumber[1]} of 500 items
-              </span>
-              <div className="flex gap-3">
-                <button
-                  className={cn(
-                    currentPage === 1 && "cursor-not-allowed text-gray-100",
-                  )}
-                  disabled={currentPage === 1}
-                  onClick={() => prevPageHandler()}
-                >
-                  <IoIosArrowBack />
-                </button>
-                {visiblePages.map((page) =>
-                  page <= totalPages ? (
-                    <button
-                      key={page}
-                      className={cn(
-                        currentPage === page
-                          ? "border-secondary border-2"
-                          : "border-transparent",
-                        "px-2.5 py-0.5 rounded-sm border-2",
-                      )}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  ) : null,
-                )}
-                <button
-                  className={cn(
-                    currentPage === totalPages &&
-                      "cursor-not-allowed text-gray-100",
-                  )}
-                  disabled={currentPage === totalPages}
-                  onClick={() => nextPageHandler()}
-                >
-                  <IoIosArrowForward />
-                </button>
-              </div>
-              {/* Page size Dropdown */}
-              <div className="px-3 py-0.5 border-2 rounded-sm">
-                <select
-                  onChange={handlePageSizeChange}
-                  className="hover:border-gray-400 focus:outline-none text-gray-700 bg-white border-gray-300 rounded-md"
-                  defaultValue={10}
-                >
-                  <option value="10">10 / Page</option>
-                  <option value="50">50 / Page</option>
-                  <option value="100">100 / Page</option>
-                </select>
-              </div>
-            </div>
+            <Pagination
+              commentRange={commentRange}
+              currentPage={currentPage}
+              setPageSize={setPageSize}
+              setCurrentPage={setCurrentPage}
+              totalItems={highlightedData?.length || 500}
+              totalPages={totalPages}
+              visiblePages={visiblePages}
+              prevPage={prevPage}
+              nextPage={nextPage}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={handlePageSizeChange}
+              pageSize={pageSize}
+            />
           </TableCaption>
           <TableHeader className="text-primary ">
             <TableRow className="h-16">
@@ -376,22 +286,40 @@ const Comments = () => {
             }
             {
               /* Data state */
-              displayData?.length > 0 &&
-                displayData
+              highlightedData?.length > 0 ? (
+                highlightedData
                   ?.slice(
                     currentPage * pageSize - pageSize,
                     currentPage * pageSize,
                   )
                   ?.map((comment: Comment) => {
+                    const sanitizedName = DOMPurify.sanitize(comment.name);
+                    const sanitizedEmail = DOMPurify.sanitize(comment.email);
+                    const sanitizedBody = DOMPurify.sanitize(comment.body);
                     return (
                       <TableRow key={comment.id} className="">
                         <TableCell>{comment.id}</TableCell>
-                        <TableCell>{comment.name}</TableCell>
-                        <TableCell>{comment.email.toLowerCase()}</TableCell>
-                        <TableCell className="">{comment.body}</TableCell>
+                        <TableCell
+                          dangerouslySetInnerHTML={{ __html: sanitizedName }}
+                        />
+                        <TableCell
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizedEmail.toLowerCase(),
+                          }}
+                        />
+                        <TableCell
+                          dangerouslySetInnerHTML={{ __html: sanitizedBody }}
+                        />
                       </TableRow>
                     );
                   })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    No comments found matching your search
+                  </TableCell>
+                </TableRow>
+              )
             }
           </TableBody>
         </Table>
